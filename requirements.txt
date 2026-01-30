@@ -1,5 +1,5 @@
 openai
 psycopg2-binary
 pgvector
-pymupdf  # for PDFs
+PyPDF2  # for PDFs
 python-dotenv
