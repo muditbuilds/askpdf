@@ -1,0 +1,5 @@
+openai
+psycopg2-binary
+pgvector
+pymupdf  # for PDFs
+python-dotenv
