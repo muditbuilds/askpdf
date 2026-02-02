@@ -9,8 +9,3 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
         input = texts,
     )
     return [item.embedding for item in response.data];
-
-if __name__ == "__main__":
-    texts = ["Hello, world!", "Hello, world!", "Hello, world!"];
-    embeddings = get_embeddings(texts);
-    print(embeddings);

@@ -15,10 +15,3 @@ def chunk_pdf(pdf_path: str) -> list[str]:
         for page in pdf_reader.pages:
             text += page.extract_text();
         return chunk_text(text);
-
-if __name__ == "__main__":
-    pdf_path = input("Enter the path to the PDF file: ");
-    chunks = chunk_pdf(pdf_path);
-    for chunk in chunks:
-        print(chunk);
-        print("-" * 100);
