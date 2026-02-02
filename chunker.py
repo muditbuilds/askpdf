@@ -1,4 +1,4 @@
-import PyPDF2;
+from pypdf import PdfReader;
 
 def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]: 
     words = text.split();
@@ -10,7 +10,7 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]
 
 def chunk_pdf(pdf_path: str) -> list[str]:
     with open(pdf_path, 'rb') as file:
-        pdf_reader = PyPDF2.PdfReader(file);
+        pdf_reader = PdfReader(file);
         text = '';
         for page in pdf_reader.pages:
             text += page.extract_text();

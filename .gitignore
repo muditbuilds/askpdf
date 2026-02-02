@@ -35,6 +35,7 @@ ENV/
 .vscode/
 *.swp
 *.swo
+.cursor/
 
 # Jupyter
 .ipynb_checkpoints/
