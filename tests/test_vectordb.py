@@ -42,7 +42,7 @@ class TestInsertChunk:
         sql = call_args[0][0]
         params = call_args[0][1]
         
-        assert "INSERT INTO chunks" in sql
+        assert "INSERT INTO documents" in sql
         assert "RETURNING id" in sql
         assert params == (content, embedding, source, chunk_index)
 
@@ -91,8 +91,9 @@ class TestSearchChunks:
         call_args = mock_cursor.execute.call_args
         sql = call_args[0][0]
         
-        # Verify cosine distance operator is used
+        # Verify cosine distance operator and vector cast are used
         assert "<=>" in sql
+        assert "::vector" in sql
 
     def test_respects_top_k_parameter(self):
         mock_cursor = Mock()
