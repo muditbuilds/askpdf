@@ -1,4 +1,4 @@
-def insert_chunk(conn,content, embedding, source, chunk_index):
+def insert_chunk(conn, content, embedding, source, chunk_index):
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO chunks (content, embedding, source, chunk_index)
