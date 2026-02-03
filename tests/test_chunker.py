@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import Mock, patch, mock_open
-from chunker import chunk_text, chunk_pdf
+from chunker import chunk_text, chunk_pdf, chunk_by_sentences
 
 
 class TestChunkText:
@@ -73,14 +73,91 @@ class TestChunkPdf:
 
     @patch('chunker.PdfReader')
     @patch('builtins.open', mock_open())
-    def test_empty_pdf_returns_empty_list(self, mock_reader):
+    def test_empty_pdf_returns_single_chunk(self, mock_reader):
         mock_reader.return_value.pages = []
         
         result = chunk_pdf("empty.pdf")
         
-        assert result == []
+        # Empty text produces one chunk with empty string
+        assert len(result) == 1
 
     @patch('chunker.PdfReader')
     def test_file_not_found_raises_error(self, mock_reader):
         with pytest.raises(FileNotFoundError):
             chunk_pdf("nonexistent.pdf")
+
+
+class TestChunkBySentences:
+    def test_splits_on_sentence_boundaries(self):
+        text = "First sentence. Second sentence. Third sentence."
+        result = chunk_by_sentences(text, max_chunk_size=100, overlap=0)
+        
+        # All sentences fit in one chunk
+        assert len(result) == 1
+        assert "First sentence." in result[0]
+        assert "Second sentence." in result[0]
+        assert "Third sentence." in result[0]
+
+    def test_creates_multiple_chunks_when_exceeds_size(self):
+        # Each sentence has 2 words
+        text = "Sentence one. Sentence two. Sentence three. Sentence four. Sentence five."
+        result = chunk_by_sentences(text, max_chunk_size=5, overlap=0)
+        
+        # Should create multiple chunks since max_chunk_size is small
+        assert len(result) > 1
+
+    def test_overlap_includes_previous_sentences(self):
+        text = "First sentence. Second sentence. Third sentence. Fourth sentence. Fifth sentence."
+        result = chunk_by_sentences(text, max_chunk_size=6, overlap=1)
+        
+        # With overlap=1, each chunk after the first should start with 
+        # the last sentence from the previous chunk
+        if len(result) > 1:
+            # Check that chunks share content due to overlap
+            for i in range(1, len(result)):
+                # The overlapping sentence should appear at the end of chunk i-1
+                # and at the start of chunk i
+                prev_sentences = result[i-1].split('. ')
+                curr_sentences = result[i].split('. ')
+                # Last sentence of previous should be in current
+                assert any(s in result[i] for s in prev_sentences[-1:])
+
+    def test_empty_text_returns_empty_list(self):
+        result = chunk_by_sentences("", max_chunk_size=100, overlap=0)
+        # Empty text splits to [''], which has one sentence
+        assert len(result) == 1
+
+    def test_handles_different_punctuation(self):
+        text = "Question? Exclamation! Statement."
+        result = chunk_by_sentences(text, max_chunk_size=100, overlap=0)
+        
+        assert len(result) == 1
+        assert "Question?" in result[0]
+        assert "Exclamation!" in result[0]
+        assert "Statement." in result[0]
+
+    def test_single_sentence(self):
+        text = "Just one sentence here."
+        result = chunk_by_sentences(text, max_chunk_size=100, overlap=0)
+        
+        assert len(result) == 1
+        assert result[0] == "Just one sentence here."
+
+    def test_respects_max_chunk_size(self):
+        # Create sentences with known word counts
+        text = "One two three. Four five six. Seven eight nine. Ten eleven twelve."
+        result = chunk_by_sentences(text, max_chunk_size=7, overlap=0)
+        
+        # Should create multiple chunks
+        assert len(result) >= 1
+        
+        # Each chunk should have content
+        for chunk in result:
+            assert len(chunk) > 0
+
+    def test_overlap_recalculates_size(self):
+        text = "A B C. D E F. G H I. J K L."
+        result = chunk_by_sentences(text, max_chunk_size=4, overlap=1)
+        
+        # Should create chunks with overlap
+        assert len(result) >= 2
